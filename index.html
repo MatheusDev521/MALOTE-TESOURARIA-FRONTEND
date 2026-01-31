@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malote Tesouraria</title>
+  <meta name="description" content="Sistema de geração de protocolo de malote financeiro">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="script.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    
+    <!-- FORMULÁRIO PRINCIPAL -->
+    <form class="formulario" id="formMalote">
+      
+      <!-- CONTAINER GRID: 2 COLUNAS -->
+      <div class="grid-layout">
+        
+        <!-- COLUNA ESQUERDA: Dados e Atendimentos -->
+        <div class="coluna-esquerda">
+          
+          <!-- SEÇÃO: DADOS DO REMETENTE -->
+          <section class="form-section" id="secaoRemetente">
+            <h3>Dados do Remetente</h3>
+            
+            <div class="form-group">
+              <label for="remetente_nome">Remetente:</label>
+              <input 
+                id="remetente_nome" 
+                type="text" 
+                placeholder="Digite o nome do setor remetente..." 
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="numero_lacre">Nº do Lacre:</label>
+              <input 
+                id="numero_lacre" 
+                type="text" 
+                placeholder="Digite o número do lacre do malote..." 
+                required
+              >
+            </div>
+          </section>
+
+          <!-- SEÇÃO: ATENDIMENTOS PARTICULARES -->
+          <section class="form-section" id="secaoAtendimentos">
+            <h3>Atendimentos Particulares</h3>
+            
+            <div class="tabela-container">
+              <table class="tabela-atendimentos">
+                <thead>
+                  <tr>
+                    <th>#</th> <!-- NOVA COLUNA -->
+                    <th>Nº Atendimento</th>
+                    <th>Valor (R$)</th>
+                    <th>Forma de Pagamento</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tabelaAtendimentos">
+                  <!-- Primeira linha de exemplo -->
+                  <tr class="linha-atendimento">
+                    <td class="numero-linha">1</td> <!-- NOVA COLUNA -->
+                    <td>
+                      <input 
+                        type="number" 
+                        class="atendimento-num" 
+                        placeholder="Nº do atendimento" 
+                        required
+                      >
+                    </td>
+                    <td>
+                      <div class="input-moeda">
+                        <span class="moeda-simbolo">R$</span>
+                        <input 
+                          type="text" 
+                          class="atendimento-valor" 
+                          placeholder="0,00" 
+                          required
+                        >
+                      </div>
+                    </td>
+                    <td>
+                      <select class="atendimento-forma-pagamento" required>
+                        <option value="">Selecione...</option>
+                        <option value="CARTAO">Cartão</option>
+                        <option value="DINHEIRO">Espécie</option>
+                      </select>
+                    </td>
+                    <td>
+                      <button 
+                        type="button" 
+                        class="btn-remover" 
+                        title="Remover atendimento"
+                        aria-label="Remover atendimento"
+                      >
+                        ✕
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <button 
+                type="button" 
+                id="btnAdicionarAtendimento" 
+                class="btn-adicionar"
+              >
+                + ADICIONAR ATENDIMENTO
+              </button>
+            </div>
+          </section>
+          
+        </div>
+        
+        <!-- COLUNA DIREITA: Totalizador, Observação e Botões -->
+        <div class="coluna-direita">
+          
+          <!-- TOTALIZADOR -->
+          <div class="totalizador">
+            <h3>Resumo</h3>
+            <div class="total-item">
+              <span>Total em Cartão:</span>
+              <strong id="totalCartao">R$ 0,00</strong>
+            </div>
+            <div class="total-item">
+              <span>Total em Espécie:</span>
+              <strong id="totalDinheiro">R$ 0,00</strong>
+            </div>
+            <div class="total-item total-geral">
+              <span>Total Geral:</span>
+              <strong id="totalGeral">R$ 0,00</strong>
+            </div>
+          </div>
+
+          <!-- SEÇÃO: OBSERVAÇÃO -->
+          <div class="form-group observacao-group">
+            <h3>Observação</h3>
+            <label for="observacao" class="sr-only">Observações sobre o malote:</label>
+            <textarea 
+              id="observacao" 
+              rows="6" 
+              placeholder="Digite aqui alguma observação relevante sobre o malote..."
+            ></textarea>
+          </div>
+
+          <!-- BOTÕES DE AÇÃO -->
+          <div class="botoes-acao">
+            <button type="button" id="btnGerarPDF" class="btn-gerar">
+              GERAR PROTOCOLO PDF
+            </button>
+            <button type="button" id="btnLimpar" class="btn-limpar">
+              LIMPAR TUDO
+            </button>
+          </div>
+          
+        </div>
+        
+      </div>
+      
+    </form>
+  </div>
+
+  <!-- LOADING OVERLAY -->
+  <div id="loadingOverlay" class="loading-overlay hidden" role="status" aria-live="polite">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <p>Gerando protocolo, aguarde...</p>
+    </div>
+  </div>
+
+</body>
+</html>
