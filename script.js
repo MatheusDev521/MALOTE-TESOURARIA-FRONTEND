@@ -1,4 +1,13 @@
 // =========================
+// CONFIGURAÇÃO DA API
+// =========================
+
+// URL da API - ATUALIZE APÓS DEPLOY NO RENDER
+const API_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5000'  // Desenvolvimento local
+  : 'https://sua-url.onrender.com';  // ⚠️ SUBSTITUA pela URL do Render
+
+// =========================
 // ELEMENTOS DO DOM
 // =========================
 const formMalote = document.getElementById('formMalote');
@@ -213,7 +222,7 @@ function removerLinhaAtendimento(linha) {
       linha.remove();
       atualizarNumeracaoLinhas();
       calcularTotais();
-      atualizarBotaoAdicionar(); // ADICIONE ESTA LINHA
+      atualizarBotaoAdicionar();
     }
   } else {
     alert('Deve haver pelo menos um atendimento na tabela!');
@@ -245,7 +254,7 @@ function limparFormulario() {
 
     atualizarNumeracaoLinhas();
     calcularTotais();
-    atualizarBotaoAdicionar(); // ADICIONE ESTA LINHA
+    atualizarBotaoAdicionar();
   }
 }
 
@@ -269,11 +278,11 @@ function coletarDadosFormulario() {
     const valorFormatado = linha.querySelector('.atendimento-valor').value;
     const formaPagamento = linha.querySelector('.atendimento-forma-pagamento').value;
 
-    if (numeroAtendimento && valorFormatado && formaPagamento) {
+    // Só adiciona se tiver número de atendimento
+    if (numeroAtendimento && formaPagamento) {
       atendimentos.push({
-        numero: numeroAtendimento,
+        numero: parseInt(numeroAtendimento),
         valor: converterMoedaParaNumero(valorFormatado),
-        valorFormatado: valorFormatado,
         formaPagamento: formaPagamento
       });
     }
@@ -343,38 +352,7 @@ function validarFormulario() {
 }
 
 /**
- * Limpa todo o formulário
- */
-function limparFormulario() {
-  if (confirm('Tem certeza que deseja limpar todos os dados?')) {
-    // Limpa campos de remetente
-    document.getElementById('remetente_nome').value = '';
-    document.getElementById('numero_lacre').value = '';
-    document.getElementById('observacao').value = '';
-
-    // Remove todas as linhas exceto a primeira
-    const linhas = Array.from(tabelaAtendimentos.querySelectorAll('.linha-atendimento'));
-    linhas.forEach((linha, index) => {
-      if (index > 0) {
-        linha.remove();
-      }
-    });
-
-    // Limpa a primeira linha
-    const primeiraLinha = tabelaAtendimentos.querySelector('.linha-atendimento');
-    if (primeiraLinha) {
-      primeiraLinha.querySelector('.atendimento-num').value = '';
-      primeiraLinha.querySelector('.atendimento-valor').value = '0,00';
-      primeiraLinha.querySelector('.atendimento-forma-pagamento').value = '';
-    }
-
-    // Reseta os totais
-    calcularTotais();
-  }
-}
-
-/**
- * Gera o PDF (preparado para integração com backend Python)
+ * Gera o PDF (integrado com backend Python)
  */
 async function gerarPDF() {
   if (!validarFormulario()) {
@@ -387,11 +365,8 @@ async function gerarPDF() {
   loadingOverlay.classList.remove('hidden');
 
   try {
-    // AQUI VOCÊ VAI INTEGRAR COM SEU BACKEND PYTHON
-    // Exemplo de requisição:
-    
-    /*
-    const response = await fetch('/api/gerar-pdf', {
+    // Faz requisição ao backend Python
+    const response = await fetch(`${API_URL}/api/gerar-pdf`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -399,35 +374,75 @@ async function gerarPDF() {
       body: JSON.stringify(dados)
     });
 
-    if (response.ok) {
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `protocolo_malote_${dados.numeroLacre}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-    } else {
-      throw new Error('Erro ao gerar PDF');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `Erro HTTP: ${response.status}`);
     }
-    */
 
-    // POR ENQUANTO, APENAS SIMULA E MOSTRA OS DADOS NO CONSOLE
-    console.log('Dados para enviar ao backend:', dados);
+    // Recebe o PDF como blob
+    const blob = await response.blob();
     
-    // Simula delay de processamento
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Cria URL para download
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `protocolo_malote_${dados.numeroLacre}_${new Date().getTime()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
     
-    alert('PDF gerado com sucesso!\n\n(Integração com backend Python pendente)');
+    // Limpa
+    window.URL.revokeObjectURL(url);
+    a.remove();
+    
+    // Feedback de sucesso
+    alert('✓ PDF gerado com sucesso!');
     
   } catch (error) {
     console.error('Erro ao gerar PDF:', error);
-    alert('Erro ao gerar PDF. Tente novamente.');
+    
+    let mensagemErro = 'Erro ao gerar PDF.\n\n';
+    
+    if (error.message.includes('Failed to fetch')) {
+      mensagemErro += '❌ Não foi possível conectar ao servidor.\n\n';
+      mensagemErro += 'Verifique:\n';
+      mensagemErro += '1. Se o backend está rodando\n';
+      mensagemErro += '2. Se a URL da API está correta no script.js\n';
+      mensagemErro += `3. URL configurada: ${API_URL}`;
+    } else {
+      mensagemErro += error.message;
+    }
+    
+    alert(mensagemErro);
   } finally {
     // Esconde loading
     loadingOverlay.classList.add('hidden');
+  }
+}
+
+/**
+ * Verifica se o backend está disponível
+ */
+async function verificarConexaoBackend() {
+  try {
+    const response = await fetch(`${API_URL}/api/health`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log('✓ Backend conectado:', data.message);
+      console.log('  URL:', API_URL);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.warn('⚠ Backend não está acessível em', API_URL);
+    console.warn('  Verifique se o servidor está rodando');
+    console.warn('  Ou atualize a URL da API no início do script.js');
+    return false;
   }
 }
 
@@ -453,6 +468,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Calcula totais iniciais
   calcularTotais();
+  
+  // Verifica conexão com backend
+  verificarConexaoBackend();
+  
+  // Log da configuração
+  console.log('📦 Sistema Malote Tesouraria');
+  console.log('🔌 API URL:', API_URL);
+  console.log('🌍 Ambiente:', window.location.hostname === 'localhost' ? 'Desenvolvimento' : 'Produção');
 });
 
 // =========================
@@ -476,13 +499,8 @@ btnAdicionarAtendimento.addEventListener('click', () => {
   const inputNumero = novaLinha.querySelector('.atendimento-num');
   inputNumero.focus();
   
-  // Desabilita o botão se atingir o limite
-  if (totalLinhas + 1 >= 18) {
-    btnAdicionarAtendimento.disabled = true;
-    btnAdicionarAtendimento.style.opacity = '0.5';
-    btnAdicionarAtendimento.style.cursor = 'not-allowed';
-    btnAdicionarAtendimento.textContent = '⚠️ LIMITE MÁXIMO ATINGIDO (18) ⚠️';
-  }
+  // Atualiza botão
+  atualizarBotaoAdicionar();
 });
 
 /**
@@ -542,8 +560,11 @@ document.addEventListener('keydown', (e) => {
 window.maloteDebug = {
   coletarDados: coletarDadosFormulario,
   calcularTotais: calcularTotais,
-  limpar: limparFormulario
+  limpar: limparFormulario,
+  verificarBackend: verificarConexaoBackend,
+  apiUrl: API_URL
 };
 
 console.log('✅ Script do Malote Tesouraria carregado com sucesso!');
 console.log('💡 Use window.maloteDebug para acessar funções de debug no console');
+console.log('🔌 API configurada em:', API_URL);

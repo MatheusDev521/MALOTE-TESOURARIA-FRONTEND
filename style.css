@@ -237,7 +237,7 @@ body {
 .moeda-simbolo {
   position: absolute;
   left: 12px;
-  color: var(--primary);
+  color: rgb(2, 153, 2);
   font-weight: 600;
   font-size: 14px;
   pointer-events: none;
