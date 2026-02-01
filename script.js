@@ -272,6 +272,7 @@ async function gerarPDF() {
   loadingOverlay.classList.remove("hidden");
 
   try {
+    // 🔥 CORREÇÃO: Usar parênteses () em vez de template literal ``
     const response = await fetch(`${API_URL}/preencher-malote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -279,7 +280,17 @@ async function gerarPDF() {
     });
 
     if (!response.ok) {
-      throw new Error(`Erro no servidor: ${response.status}`);
+      // Tenta pegar mensagem de erro do servidor
+      let errorMessage = `Erro no servidor: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.erro) {
+          errorMessage += ` - ${errorData.erro}`;
+        }
+      } catch (e) {
+        // Se não conseguir parsear JSON, mantém mensagem padrão
+      }
+      throw new Error(errorMessage);
     }
 
     const blob = await response.blob();
@@ -297,6 +308,7 @@ async function gerarPDF() {
     alert("✅ PDF gerado com sucesso!");
 
   } catch (erro) {
+    console.error("Erro completo:", erro);
     alert("❌ Erro ao gerar PDF: " + erro.message);
   } finally {
     loadingOverlay.classList.add("hidden");
@@ -308,11 +320,16 @@ async function gerarPDF() {
 // =========================
 async function verificarConexaoBackend() {
   try {
-    await fetch(`${API_URL}/preencher-malote`, { method: "OPTIONS" });
-    console.log("Backend acessível em:", API_URL);
-    return true;
+    const response = await fetch(`${API_URL}/health`);
+    if (response.ok) {
+      console.log("✅ Backend acessível em:", API_URL);
+      return true;
+    } else {
+      console.warn("⚠️ Backend respondeu com erro:", response.status);
+      return false;
+    }
   } catch (error) {
-    console.warn("Backend não está acessível em:", API_URL);
+    console.error("❌ Backend não está acessível em:", API_URL, error);
     return false;
   }
 }
