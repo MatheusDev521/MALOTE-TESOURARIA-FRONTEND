@@ -273,7 +273,7 @@ async function gerarPDF() {
 
   try {
     // 🔥 CORREÇÃO: Usar parênteses () em vez de template literal ``
-    const response = await fetch(`${API_URL}/preencher-malote`, {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(dados),
