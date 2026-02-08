@@ -192,7 +192,7 @@ function coletarDadosFormulario() {
 
   dados["REMETENTE"] = document.getElementById("remetente_nome").value;
   dados["N LACRE"] = document.getElementById("numero_lacre").value;
-  dados["OBS"] = document.getElementById("observacao").value || "";
+  dados["OBS:"] = document.getElementById("observacao").value || "";
 
   const linhas = tabelaAtendimentos.querySelectorAll(".linha-atendimento");
 
