@@ -190,9 +190,10 @@ function limparFormulario() {
 function coletarDadosFormulario() {
   const dados = {};
 
+  // ✅ CORREÇÃO: Nome correto dos campos
   dados["REMETENTE"] = document.getElementById("remetente_nome").value;
-  dados["N LACRE"] = document.getElementById("numero_lacre").value;
-  dados["OBS:"] = document.getElementById("observacao").value || "";
+  dados["N_LACRE"] = document.getElementById("numero_lacre").value;  // Era "N LACRE"
+  dados["OBS"] = document.getElementById("observacao").value || "";   // Era "OBS:"
 
   const linhas = tabelaAtendimentos.querySelectorAll(".linha-atendimento");
 
@@ -210,13 +211,14 @@ function coletarDadosFormulario() {
       const checkboxCartao = numeroLinha * 2 - 1;
       const checkboxDinheiro = numeroLinha * 2;
 
+      // ✅ CORREÇÃO: Usar "/Sim" e "/Off" ao invés de "On" e "Off"
       if (forma === "CARTAO") {
-        dados[`Check Box${checkboxCartao}`] = "On";
-        dados[`Check Box${checkboxDinheiro}`] = "Off";
+        dados[`Check Box${checkboxCartao}`] = "/Sim";  // Era "On"
+        dados[`Check Box${checkboxDinheiro}`] = "/Off";
       } 
       else if (forma === "DINHEIRO") {
-        dados[`Check Box${checkboxCartao}`] = "Off";
-        dados[`Check Box${checkboxDinheiro}`] = "On";
+        dados[`Check Box${checkboxCartao}`] = "/Off";
+        dados[`Check Box${checkboxDinheiro}`] = "/Sim";  // Era "On"
       }
     }
   });
