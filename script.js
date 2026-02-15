@@ -66,6 +66,7 @@ function aplicarMascaraMoeda(input) {
 function calcularTotais() {
   let totalDinheiro = 0;
   let totalCartao = 0;
+  let totalAmbos = 0;
 
   const linhas = tabelaAtendimentos.querySelectorAll('.linha-atendimento');
 
@@ -78,16 +79,22 @@ function calcularTotais() {
 
     if (formaPagamento === 'DINHEIRO') {
       totalDinheiro += valor;
-    } else if (formaPagamento === 'CARTAO') {
+    }
+    else if (formaPagamento === 'CARTAO') {
       totalCartao += valor;
     }
+    else if (formaPagamento === 'AMBOS') {
+        totalAmbos += valor;
+      }
   });
 
-  const totalGeral = totalDinheiro + totalCartao;
+  const totalGeral = totalDinheiro + totalCartao + totalAmbos;
 
   totalDinheiroEl.textContent = formatarMoeda(totalDinheiro);
   totalCartaoEl.textContent = formatarMoeda(totalCartao);
   totalGeralEl.textContent = formatarMoeda(totalGeral);
+
+  return totalGeral
 }
 
 // =========================
@@ -190,35 +197,44 @@ function limparFormulario() {
 function coletarDadosFormulario() {
   const dados = {};
 
-  // ✅ CORREÇÃO: Nome correto dos campos
   dados["REMETENTE"] = document.getElementById("remetente_nome").value;
-  dados["N_LACRE"] = document.getElementById("numero_lacre").value;  // Era "N LACRE"
-  dados["OBS"] = document.getElementById("observacao").value || "";   // Era "OBS:"
-
+  dados["N_LACRE"] = document.getElementById("numero_lacre").value;
+  
+  const total = calcularTotais();
+  let observacao = document.getElementById("observacao").value || "";
+    if (observacao > "") {
+      observacao = `// ${observacao}`;
+    }
+  dados["OBS"] = `Total: ${formatarMoeda(total)} ${observacao}`;
+  
   const linhas = tabelaAtendimentos.querySelectorAll(".linha-atendimento");
-
+  
   linhas.forEach((linha, index) => {
     const numeroLinha = index + 1;
-
+    
     const atendimento = linha.querySelector(".atendimento-num").value;
     const valor = linha.querySelector(".atendimento-valor").value;
     const forma = linha.querySelector(".atendimento-forma-pagamento").value;
-
+    
     if (atendimento) {
       dados[`ATENDIMENTORow${numeroLinha}`] = atendimento;
       dados[`VALORRow${numeroLinha}`] = "R$ " + valor;
-
+      
       const checkboxCartao = numeroLinha * 2 - 1;
       const checkboxDinheiro = numeroLinha * 2;
-
+      
       // ✅ CORREÇÃO: Usar "/Sim" e "/Off" ao invés de "On" e "Off"
       if (forma === "CARTAO") {
-        dados[`Check Box${checkboxCartao}`] = "/Sim";  // Era "On"
+        dados[`Check Box${checkboxCartao}`] = "/Sim";
         dados[`Check Box${checkboxDinheiro}`] = "/Off";
       } 
       else if (forma === "DINHEIRO") {
         dados[`Check Box${checkboxCartao}`] = "/Off";
-        dados[`Check Box${checkboxDinheiro}`] = "/Sim";  // Era "On"
+        dados[`Check Box${checkboxDinheiro}`] = "/Sim";
+      }
+      else if (forma === "AMBOS") {
+        dados[`Check Box${checkboxCartao}`] = "/Sim";
+        dados[`Check Box${checkboxDinheiro}`] = "/Sim";
       }
     }
   });
