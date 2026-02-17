@@ -133,6 +133,7 @@ function criarNovaLinhaAtendimento() {
         <option value="">Selecione...</option>
         <option value="CARTAO">Cartão</option>
         <option value="DINHEIRO">Espécie</option>
+        <option value="AMBOS">Ambos</option>
       </select>
     </td>
     <td>
